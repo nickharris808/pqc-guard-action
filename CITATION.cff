@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "pqc-guard-action"
+message: "If you use this software or dataset, please cite it."
+type: software
+abstract: >-
+  A GitHub Action that fails the build when the post-quantum reassembly window is empty.
+authors:
+  - name: "PQC Migration Safety Lab"
+repository-code: "https://github.com/nickharris808/pqc-guard-action"
+url: "https://nickharris808.github.io/pqc-toolkit/"
+license: Apache-2.0
+version: "0.2.0"
+date-released: "2026-07-28"
+keywords:
+  - post-quantum cryptography
+  - protocol verification
+  - ML-KEM
+  - ML-DSA
+  - fragmentation

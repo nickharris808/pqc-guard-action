@@ -10,6 +10,8 @@ Three lines in a workflow. Fails the build when no safe reassembly cap exists, w
 benchmark coverage drops below your threshold, or when you regress a case that used to
 pass.
 
+**📖 Full documentation, tutorial and conceptual guide: <https://nickharris808.github.io/pqc-toolkit/>**
+
 ---
 
 ## Why this exists
