@@ -16,7 +16,7 @@ jobs:
       # commit being tagged -- there is no build artifact to inspect afterwards.
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install pytest==8.3.3 pyyaml==6.0.2 pqc-sizes pqc-mfb
+      - run: pip install pytest==8.3.3 pyyaml==6.0.2 "pqc-sizes @ git+https://github.com/nickharris808/pqc-sizes@main" "pqc-mfb @ git+https://github.com/nickharris808/pqc-mfb@main"
       - run: pytest -q
 
       - name: Self-test the action at this commit

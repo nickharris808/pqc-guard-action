@@ -76,9 +76,17 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    # Installed from their public GitHub repositories, not from PyPI. Neither
+    # package is on PyPI yet, so pinning "pqc-sizes==0.1.0" failed with
+    # "No matching distribution found" for every user -- the action could not run
+    # at all. Switch to plain version pins once both are published; nothing else
+    # here needs to change.
     - name: Install checkers
       shell: bash
-      run: python -m pip install --quiet "pqc-sizes==0.1.0" "pqc-mfb==0.1.0"
+      run: |
+        python -m pip install --quiet \
+          "pqc-sizes @ git+https://github.com/nickharris808/pqc-sizes@main" \
+          "pqc-mfb @ git+https://github.com/nickharris808/pqc-mfb@main"
 
     - name: Run PQC guard
       id: run

@@ -1,7 +1,7 @@
 # pqc-guard-action
 
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-17%20passing-brightgreen.svg)](tests/)
+[![tests](https://img.shields.io/badge/tests-24%20passing-brightgreen.svg)](tests/)
 [![action](https://img.shields.io/badge/GitHub-Action-2088FF.svg)](action.yml)
 
 **Catch an unsafe post-quantum migration in CI, not in the field.**
@@ -130,7 +130,7 @@ Exit codes: **0** pass · **1** check failed · **2** usage error.
 ## Tests
 
 ```bash
-pip install pytest pyyaml pqc-sizes pqc-mfb && pytest    # 17 passed
+pip install pytest pyyaml pqc-sizes pqc-mfb && pytest    # 24 passed
 ```
 
 Tests drive `guard.py` as a subprocess with the GitHub Actions environment wired to

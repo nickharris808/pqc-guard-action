@@ -222,7 +222,30 @@ def test_action_yml_is_valid_yaml_with_required_keys():
     spec = yaml.safe_load((ROOT / "action.yml").read_text())
     assert spec["runs"]["using"] == "composite"
     assert "inputs" in spec and "outputs" in spec
-    # pinned installs, so a broken upstream release cannot silently change behaviour
     steps = spec["runs"]["steps"]
     install = next(s for s in steps if "pip install" in str(s.get("run", "")))
-    assert "pqc-sizes==" in install["run"] and "pqc-mfb==" in install["run"]
+    run = install["run"]
+    # Both checkers must be installed from somewhere that actually resolves.
+    # This previously asserted "pqc-sizes==", which was satisfied by a pin to a
+    # version that does not exist on any index -- the assertion passed while the
+    # action was unusable. Assert an installable source instead.
+    for pkg in ("pqc-sizes", "pqc-mfb"):
+        assert pkg in run, f"{pkg} is not installed by the action"
+    assert "git+https://github.com/nickharris808/pqc-sizes" in run
+    assert "git+https://github.com/nickharris808/pqc-mfb" in run
+
+
+def test_action_does_not_install_from_an_unpublished_pypi_pin():
+    """Guard against reintroducing the pin that made the action unrunnable.
+
+    `pip install pqc-sizes==0.1.0` is a 404: neither package is on PyPI. A bare
+    `==` pin here is therefore a hard failure for every consumer of the action,
+    and it is invisible until someone actually runs it.
+    """
+    yaml = pytest.importorskip("yaml")
+    spec = yaml.safe_load((ROOT / "action.yml").read_text())
+    # Inspect the commands that actually execute, not the file text: the comment
+    # above the install step names the bad pin on purpose, to explain why it went.
+    commands = " ".join(str(s.get("run", "")) for s in spec["runs"]["steps"])
+    assert "pqc-sizes==" not in commands
+    assert "pqc-mfb==" not in commands

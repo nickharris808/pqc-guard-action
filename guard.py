@@ -144,16 +144,23 @@ def check_benchmark(args) -> int:
     _output("coverage_pct", f"{pct:.1f}")
     _output("regressions", str(sc.n_regressions))
     _output("zero_families", str(len(sc.zero_families)))
+    _output("verdict", sc.verdict)
+    _output("unanswered", str(sc.n_unanswered))
 
     rows = [
         "### PQC guard: benchmark", "",
         "| metric | value |", "|---|--:|",
+        f"| verdict | **{sc.verdict}** |",
         f"| coverage | {sc.n_closed}/{sc.n_failures} ({pct:.1f}%) |",
         f"| threshold | {args.min_coverage:.1f}% |",
         f"| regressions | {sc.n_regressions} |",
         f"| unanswered | {sc.n_unanswered} |",
         f"| families closed 0 of | {len(sc.zero_families)} |",
     ]
+    if sc.unknown_ids:
+        rows += ["", f"⚠️ {len(sc.unknown_ids)} submitted id(s) match no case in this "
+                     "benchmark and were ignored:", ""]
+        rows += [f"- `{u}`" for u in sc.unknown_ids[:10]]
     if sc.zero_families:
         rows += ["", "Zero-coverage families:", ""]
         rows += [f"- `{f}`" for f in sc.zero_families[:20]]
@@ -166,6 +173,23 @@ def check_benchmark(args) -> int:
         _error(
             f"{sc.n_regressions} regression(s): a case the unrepaired baseline "
             f"already passed now fails. This is a hard failure regardless of coverage."
+        )
+        failed = True
+    if sc.n_unanswered:
+        # Without this the gate could be satisfied by answering nothing: an empty
+        # submission has no regressions, and 0% coverage clears a 0% threshold.
+        _error(
+            f"{sc.n_unanswered} of {sc.n_failures} failure cases are unanswered. "
+            f"Silence is not credit -- the guard cannot certify a submission that "
+            f"did not answer. Generate a complete submission for every case id in "
+            f"`pqc-mfb info`."
+        )
+        failed = True
+    if sc.unknown_ids:
+        _error(
+            f"{len(sc.unknown_ids)} submitted id(s) match no case in this benchmark "
+            f"(first: {sc.unknown_ids[0]}). The submission may target a different "
+            f"benchmark version."
         )
         failed = True
     if pct < args.min_coverage:
