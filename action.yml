@@ -1,0 +1,119 @@
+name: "PQC Migration Guard"
+description: "Fail the build when a post-quantum migration config is unsafe: empty reassembly window, coverage below threshold, or a regression."
+author: "PQC Migration Safety Lab"
+branding:
+  icon: "shield"
+  color: "purple"
+
+inputs:
+  check:
+    description: "Which check to run: 'window', 'benchmark', or 'both'."
+    required: false
+    default: "window"
+
+  # --- window ---
+  kem:
+    description: "KEM algorithm name, e.g. ML-KEM-768. Use with `sig` instead of `largest-object`."
+    required: false
+    default: ""
+  sig:
+    description: "Signature algorithm name, e.g. ML-DSA-65."
+    required: false
+    default: ""
+  largest-object:
+    description: "Largest legitimate object in bytes. Alternative to kem+sig."
+    required: false
+    default: "0"
+  budget:
+    description: "Global reassembly memory budget in bytes."
+    required: false
+    default: "65536"
+  concurrency:
+    description: "Worst-case concurrent reassembly contexts."
+    required: false
+    default: "4"
+
+  # --- benchmark ---
+  submission:
+    description: "Path to a PQC-MFB submission JSON ({case_id: bool})."
+    required: false
+    default: ""
+  min-coverage:
+    description: "Minimum PQC-MFB coverage percentage required to pass."
+    required: false
+    default: "0"
+  max-zero-families:
+    description: "Maximum number of families allowed to have zero coverage. Empty = unlimited."
+    required: false
+    default: ""
+
+  python-version:
+    description: "Python version used to run the checks."
+    required: false
+    default: "3.12"
+
+outputs:
+  window-empty:
+    description: "'true' when no safe capacity cap exists."
+    value: ${{ steps.run.outputs.window_empty }}
+  ceiling:
+    description: "Computed reassembly ceiling in bytes."
+    value: ${{ steps.run.outputs.ceiling }}
+  max-safe-concurrency:
+    description: "Highest concurrency that still admits a non-empty window."
+    value: ${{ steps.run.outputs.max_safe_concurrency }}
+  coverage-pct:
+    description: "PQC-MFB coverage percentage."
+    value: ${{ steps.run.outputs.coverage_pct }}
+  regressions:
+    description: "Number of regressed cases."
+    value: ${{ steps.run.outputs.regressions }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install checkers
+      shell: bash
+      run: python -m pip install --quiet "pqc-sizes==0.1.0" "pqc-mfb==0.1.0"
+
+    - name: Run PQC guard
+      id: run
+      shell: bash
+      env:
+        CHECK: ${{ inputs.check }}
+        KEM: ${{ inputs.kem }}
+        SIG: ${{ inputs.sig }}
+        LARGEST: ${{ inputs.largest-object }}
+        BUDGET: ${{ inputs.budget }}
+        CONCURRENCY: ${{ inputs.concurrency }}
+        SUBMISSION: ${{ inputs.submission }}
+        MIN_COVERAGE: ${{ inputs.min-coverage }}
+        MAX_ZERO: ${{ inputs.max-zero-families }}
+      run: |
+        set -uo pipefail
+        rc=0
+
+        if [ "$CHECK" = "window" ] || [ "$CHECK" = "both" ]; then
+          args=(window --budget "$BUDGET" --concurrency "$CONCURRENCY")
+          if [ -n "$KEM" ] && [ -n "$SIG" ]; then
+            args+=(--kem "$KEM" --sig "$SIG")
+          else
+            args+=(--largest-object "$LARGEST")
+          fi
+          python "${{ github.action_path }}/guard.py" "${args[@]}" || rc=$?
+        fi
+
+        if [ "$CHECK" = "benchmark" ] || [ "$CHECK" = "both" ]; then
+          if [ -z "$SUBMISSION" ]; then
+            echo "::error::check=$CHECK requires the 'submission' input"; exit 2
+          fi
+          bargs=(benchmark "$SUBMISSION" --min-coverage "$MIN_COVERAGE")
+          [ -n "$MAX_ZERO" ] && bargs+=(--max-zero-families "$MAX_ZERO")
+          python "${{ github.action_path }}/guard.py" "${bargs[@]}" || rc=$?
+        fi
+
+        exit $rc

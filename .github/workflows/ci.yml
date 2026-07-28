@@ -1,0 +1,21 @@
+name: ci
+on: { push: { branches: [main] }, pull_request: {}, workflow_dispatch: {} }
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: { os: [ubuntu-latest, macos-latest], python-version: ["3.9", "3.11", "3.12"] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python-version }}" }
+      - run: pip install pytest==8.3.3 pyyaml==6.0.2 pqc-sizes pqc-mfb
+      - run: pytest -q
+  self-test:
+    name: the action guards its own repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with: { kem: ML-KEM-768, sig: ML-DSA-65, budget: "65536", concurrency: "4" }

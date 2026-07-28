@@ -1,0 +1,38 @@
+name: release
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  verify-then-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # An Action publishes by moving a tag, so the tests must pass on the exact
+      # commit being tagged -- there is no build artifact to inspect afterwards.
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pytest==8.3.3 pyyaml==6.0.2 pqc-sizes pqc-mfb
+      - run: pytest -q
+
+      - name: Self-test the action at this commit
+        uses: ./
+        with: { kem: ML-KEM-768, sig: ML-DSA-65, budget: "65536", concurrency: "4" }
+
+      - name: Move the major-version tag
+        run: |
+          set -euo pipefail
+          MAJOR="v$(echo "${GITHUB_REF_NAME}" | sed 's/^v//' | cut -d. -f1)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f "$MAJOR"
+          git push origin -f "$MAJOR"
+          echo "moved $MAJOR -> ${GITHUB_REF_NAME}"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
