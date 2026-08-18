@@ -1,7 +1,7 @@
 # pqc-guard-action
 
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-24%20passing-brightgreen.svg)](tests/)
+[![ci](https://github.com/nickharris808/pqc-guard-action/actions/workflows/ci.yml/badge.svg)](https://github.com/nickharris808/pqc-guard-action/actions/workflows/ci.yml)
 [![action](https://img.shields.io/badge/GitHub-Action-2088FF.svg)](action.yml)
 
 **Catch an unsafe post-quantum migration in CI, not in the field.**
@@ -122,7 +122,9 @@ The Action is a thin wrapper over one readable script — no compiled bundle, no
 `node_modules`:
 
 ```bash
-pip install pqc-sizes pqc-mfb
+# NOT on PyPI yet, so the bare `pip install pqc-sizes pqc-mfb` does NOT work.
+# Install from source until the packages are published:
+pip install git+https://github.com/nickharris808/pqc-sizes git+https://github.com/nickharris808/pqc-mfb
 python guard.py window --kem ML-KEM-768 --sig ML-DSA-65 --budget 65536 --concurrency 4
 python guard.py benchmark results.json --min-coverage 80
 ```
@@ -132,7 +134,10 @@ Exit codes: **0** pass · **1** check failed · **2** usage error.
 ## Tests
 
 ```bash
-pip install pytest pyyaml pqc-sizes pqc-mfb && pytest    # 24 passed
+# `pqc-sizes` / `pqc-mfb` are not on PyPI yet -- install them from source.
+pip install pytest pyyaml \
+  git+https://github.com/nickharris808/pqc-sizes \
+  git+https://github.com/nickharris808/pqc-mfb && pytest    # 24 passed
 ```
 
 Tests drive `guard.py` as a subprocess with the GitHub Actions environment wired to
@@ -179,17 +184,17 @@ Eleven free tools for teams moving authenticated key exchange to post-quantum. T
 
 | Tool | What it does | Where |
 |---|---|---|
-| [pqc-sizes](https://github.com/nickharris808/pqc-sizes) | Sizes, fragment counts, and the two-sided reassembly window | PyPI |
-| [pqc-sizes-js](https://github.com/nickharris808/pqc-sizes-js) | The same arithmetic for Node and the browser | npm |
+| [pqc-sizes](https://github.com/nickharris808/pqc-sizes) | Sizes, fragment counts, and the two-sided reassembly window | source |
+| [pqc-sizes-js](https://github.com/nickharris808/pqc-sizes-js) | The same arithmetic for Node and the browser | source |
 | **pqc-guard-action** ← you are here | Fail the build when the window is empty | GitHub Action |
 | [pqc-dos-embedded](https://github.com/nickharris808/pqc-dos-embedded) | 169 lines of C: the failure on a real 64 KB device | source |
 | [farkas-check](https://github.com/nickharris808/farkas-check) | Re-verify the bound on-device, no SMT solver | source |
-| [pqc-migration-mcp](https://github.com/nickharris808/pqc-migration-mcp) | Six MCP tools for AI agents | PyPI |
-| [pqc-mfb](https://github.com/nickharris808/pqc-mfb) | 322 cases · 39 failure families · scorer | PyPI |
-| [pqc-mfb (data)](https://huggingface.co/datasets/nickh007/pqc-mfb) | The benchmark as a dataset | HF |
-| [pqc-formal-corpus](https://huggingface.co/datasets/nickh007/pqc-formal-corpus) | 122 named formal results, 6 provers | HF |
 | [pqc-bounds-lean](https://github.com/nickharris808/pqc-bounds-lean) | The same bound in Lean 4 — 0 `sorry`, 0 imports | source |
 | [pqc-dos-gate-rtl](https://github.com/nickharris808/pqc-dos-gate-rtl) | The gate in synthesizable RTL, 5 Yosys proofs | source |
+| [pqc-migration-mcp](https://github.com/nickharris808/pqc-migration-mcp) | Six MCP tools for AI agents | source |
+| [pqc-mfb](https://github.com/nickharris808/pqc-mfb) | 322 cases · 39 failure families · scorer | source |
+| [pqc-mfb (data)](https://huggingface.co/datasets/nickh007/pqc-mfb) | The benchmark as a dataset | HF |
+| [pqc-formal-corpus](https://huggingface.co/datasets/nickh007/pqc-formal-corpus) | 122 named formal results, 6 provers | HF |
 | [pqc-explorer](https://huggingface.co/spaces/nickh007/pqc-explorer) | Try it in your browser, no install | HF Space |
 
 **New here?** The [end-to-end tutorial](https://github.com/nickharris808/pqc-sizes/blob/main/TUTORIAL.md) walks one realistic migration through all of them in about ten minutes: sizes -> window -> CI gate -> benchmark.
