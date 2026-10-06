@@ -155,7 +155,7 @@ safe cap and your submission met your threshold — not that your code enforces 
 [`pqc-sizes`](https://github.com/nickharris808/pqc-sizes) · [`pqc-mfb`](https://github.com/nickharris808/pqc-mfb) ·
 [`pqc-dos-embedded`](https://github.com/nickharris808/pqc-dos-embedded) · [`farkas-check`](https://github.com/nickharris808/farkas-check)
 
-Enforcing the cap, and closing the other 38 failure families, is what the closed core
+Enforcing the cap, and closing the other 38 failure families, is what the closed core does.
 Patent claims have been drafted for relevant subject matter; filing status available on request.
 For commercial use, open a [GitHub Discussion](https://github.com/nickharris808) or an issue.
 
